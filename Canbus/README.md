@@ -1,198 +1,198 @@
-# CanBus, Canboot a jak to celé zprovoznit + něco navíc
+# CanBus, Canboot and how to get it all working + something extra
 
-Jak nahrát Canboot a klipper do CanBus desky Mellow SB2040 v1
+How to upload Canboot and klipper to Mellow SB2040 v1 CanBus board
 
-![klipper](img/sb2040.png) 
+![clipper](img/sb2040.png)
 
 ## 1. Canboot
 
-Co je Canboot? Jedná sa o malý spouštěcí program (bootloader), který Vám umožní aktualizovať klipper bez připojování USB, přímo skrz CANBus. Nemusíte rozebírat tiskárnu, připojovat USB kabel. Canboot není nutný, ale je doporučené ho použít. 
+What is Canboot? This is a small bootloader that allows you to update the klipper without connecting USB, directly via CANBus. You do not need to disassemble the printer, connect the USB cable. Canboot is not required but recommended.
 
-Tak jdeme na to, připojíme se na ke své tiskárně pomocí SSH a přesuneme se do své home složky:
+So here we go, we'll connect to our printer via SSH and move to our home folder:
 ```
 cd ~
 ```
 
-Stáheneme poslední verzi CanBoot z gitu:
+Let's download the latest version of CanBoot from git:
 ```
 git clone https://github.com/Arksine/CanBoot
 ```
 
-Přesuneme se do složky:
+We move to the folder:
 ```
 cd CanBoot
 ```
 
-Odstraníme případné předešlé kompilace:
+We will remove any previous compilations:
 ```
 make clean
 ```
 
-Provedeme nastavení HW pro který to kompilujeme:
+We will set up the HW for which we compile it:
 ```
 make menuconfig
 ```
 
-Nastavíme takto:  
+We set it as follows:
 
-![canboot](img/canboot.png) 
+![canboot](img/canboot.png)
 
-Nezapomeňte dopsat: rychlost `500000` (nebo až `1000000`) v kolonce `CAN bus speed` a `gpio24` v kolonce `Status LED GPIO Pin`.
+Do not forget to add: speed `500000` (or up to `1000000`) in the `CAN bus speed` box and `gpio24` in the `Status LED GPIO Pin` box.
 
-Zmáčkneme `q` pro uložení a `y` pro potvrzení.
+We press `q` to save and `y` to confirm.
 
-Zkompilujeme pomocí:
+We compile using:
 ```
 make -j4
 ```
 
-(`-j4` jen upřesnuje nastavení kompilace, aby probíhala na 4 jadrech.)
+(`-j4` just refines the compilation to run on 4 cores.)
 
-Teď nahrajeme námi zkompilovaný CanBoot firmware do SB2040 desky:
+Now upload the compiled CanBoot firmware to the SB2040 board:
 
-Připojíme usb kabel do RPI, zmáčkneme tlačítko u USB-C na SB2040 a až pak připojíme USB kabel, pustíme tlačítko. Tímto bude SB2040 v DFU režimu (Device Firmware Update, mód aktualizácie firmvéru) a můžeme nahrát firmware skrz USB.
+We connect the USB cable to the RPI, press the USB-C button on the SB2040, and then release the button after connecting the USB cable. This will put the SB2040 in DFU (Device Firmware Update) mode and we can upload the firmware via USB.
 
-Vypíšeme si usb zařízení:
+Let's list the usb device:
 ```
 lsusb
 ```
 
-Mělo by se zobrazit nově toto v seznamu:
+This should now appear in the list:
 ```
 Bus 001 Device 014: ID 2e8a:0003
 ```
 
-Zapíšeme si dvě čtveřice znaků za ID, teda v našom prípade `2e8a:0003` mělo by to být u všech SB2040 stejné, ale v bucoucnu se to může lišit.
+We write down two four characters for the ID, so in our case `2e8a:0003` it should be the same for all SB2040s, but it can be different in bucoucn.
 
-Nahrajeme CanBoot firmware:
+We upload the CanBoot firmware:
 ```
 make flash FLASH_DEVICE=2e8a:0003
 ```
 
-## 2. Klipper firmware
+## 2. Clipper firmware
 
-Přesuneme se do klipper složky a stáhneme poslední aktualizaci z gitu:
+Let's move to the klipper folder and download the latest update from git:
 ```
-cd ~/klipper && git pull
+cd ~/clipper && git pull
 ```
 
-Odstraníme předešlé kompilace:
+We will remove the previous compilations:
 ```
 make clean
 ```
 
-Provedeme nastavení HW pro který to kompilujeme:
+We will set up the HW for which we compile it:
 ```
 make menuconfig
 ```
 
-Nastavíme takto:
+We set it as follows:
 
-![klipper](img/canboot-flash.png) 
+![clipper](img/canboot-flash.png)
 
-Nezapomeňte dopsat: rychlost `500000` (nebo až `1000000`, musí byt stejná jak jsme dali v předchozím kroku) a `gpio24`.
+Don't forget to add: speed `500000` (or up to `1000000`, it must be the same as we entered in the previous step) and `gpio24`.
 
-Zmáčkneme `q` pro uložení a `y` pro potvrzení.
+We press `q` to save and `y` to confirm.
 
-Zkompilujeme:
+We compile:
 ```
 make -j4
 ```
 
-Teď nahrajeme námi zkompilovaný firmware do SB2040 desky:
+Now upload the firmware we compiled to the SB2040 board:
 
-Připojíme usb kabel do RPI, zmáčkneme tlačítko u USB-C na SB2040 a až pak připojíme USB kabel, pustíme tlačítko.
+We connect the USB cable to the RPI, press the USB-C button on the SB2040, and then release the button after connecting the USB cable.
 
-Vypíšeme si usb zařízení:
+Let's list the usb device:
 ```
 lsusb
 ```
 
-Mělo by se zobrazit toto:
+You should see this:
 ```
 Bus 001 Device 014: ID 2e8a:0003
 ```
 
-Nahrajeme klipper firmware
+We upload the klipper firmware
 ```
 make flash FLASH_DEVICE=2e8a:0003
 ```
 
-Zkontrolujeme
+We will check
 ```
 lsusb
 ```
 
-a měli bychom vidět:
+and we should see:
 ```
 Bus 001 Device 013: ID 1d50:614e OpenMoko, Inc.
 ```
 
-Rozsvítí se status led:
+The status led lights up:
 
 ![status](img/statusled.png)
 
-## 3. Zapojení a nastavení canbus interfacu
+## 3. Connecting and setting the canbus interface
 
-Ujistěte se, že jste na SB2040 zapojili jumper/propojku pro zakončovací odpor CANBUS 120 ohmů:
+Make sure you connect the 120 ohm CANBUS terminating resistor jumper to the SB2040:
 
 ![jumper](img/jumper.png)
 
-Na Mellow FLY-UTOC-1 nedáváte žádné propojky.
+You don't put any jumpers on the Mellow FLY-UTOC-1.
 
-Zapojíte podle popisu pokud máte verzi jen s paticemi, pokud máte tu s microfit konektory tak takto podle barvy kabelů. Jestli máte multimetr tak si pro jistotu zkontrolujte uspořádání konektorů, měl by být popis na PCB.
-- +24V - Červená
-- 0V - Černá
-- CANBus-H - Žlutá
-- CanBus-L - Bílá
+You connect according to the description if you have the version with sockets only, if you have the version with microfit connectors, then according to the color of the cables. If you have a multimeter, check the arrangement of the connectors to be sure, there should be a description on the PCB.
+- +24V - Red
+- 0V - Black
+- CANBus-H - Yellow
+- CanBus-L - White
 
-Připojte si také 24V z napájecího zdroje do UTOC
+Also connect 24V from the power supply to the UTOC
 
 ![utoc](img/fly-utoc-1.png)
 
-![zapojeni](img/zapojeni.png) 
+![connections](img/connections.png)
 
-###  Vytvoření Canbus interface:
+### Creating a Canbus interface:
 
-Doinstalujeme balíčky, které budeme potřebovat:
+We will install the packages we will need:
 ```
 sudo apt update && sudo apt install nano wget -y
 ```
 
-Vyrobíme konfiguraci interfacu. Otevřeme soubor `/etc/network/interfaces.d/can0` pomocí textového editoru `nano`. Musíme použiť `sudo`, protože sa jedná o systémový soubor:
+We will make the interface configuration. Let's open the `/etc/network/interfaces.d/can0` file using the `nano` text editor. We have to use `sudo` because this is a system file:
 ```
 sudo nano /etc/network/interfaces.d/can0
 ```
-A vložíme nasledovný text, **zde si nastavte rychlost jakou jste zvolili při kompilaci firmwaru, v mém případě 500000**. :
+And we insert the following text, **here set the speed you chose when compiling the firmware, in my case 500000**. :
 ```
 allow-hotplug can0
 iface can0 can static
-    bitrate 500000
-    up ifconfig $IFACE txqueuelen 1024
-    pre-up ip link set can0 type can bitrate 500000
-    pre-up ip link set can0 txqueuelen 1024
+     bit rate 500000
+     up ifconfig $IFACE txqueuelen 1024
+     pre-up ip link set can0 type can bitrate 500000
+     pre-up ip link set can0 txqueuelen 1024
 ```
 
-Uložíme sstisknutím `Ctrl + O` (uložit soubor), `Enter` na potvrzení názvu souboru a `Ctrl + X` na zavrení editoru (dole v editoru tyto zkratky můžete vidět).
+We save by pressing `Ctrl + O` (save the file), `Enter` to confirm the file name and `Ctrl + X` to close the editor (you can see these shortcuts below in the editor).
 
-Restartujeme RPI:
+Let's restart the RPI:
 ```
 sudo reboot
 ```
 
-### Zjištění canbus uuid
+### Detecting canbus uuid
 
-Přesuneme se do klipper složky:
+Let's move to the klipper folder:
 ```
-cd ~/klipper
+cd ~/clipper
 ```
 
-Zjistíme příkazem:
+We find out with the command:
 ```
 python3 lib/canboot/flash_can.py -q
 ```
 
-Dostaneme odpověď:
+We get the answer:
 ```
 pi@Voron:~/klipper $ python3 lib/canboot/flash_can.py -q
 Resetting all bootloader node IDs...
@@ -201,18 +201,18 @@ Detected UUID: 211e59ecf887, Application: Klipper
 Query Complete
 ```
 
-Zjištěné mé CanBus UUID je: `211e59ecf887` vaše bude jiné, to své si zkopírujte !!!!
+My CanBus UUID detected is: `211e59ecf887` yours will be different, copy yours !!!!
 
 
-## 4. Konfigurace SB2040 v printer.cfg
+## 4. SB2040 configuration in printer.cfg
 
-![pinout](img/pinout.jpg) 
+![pinout](img/pinout.jpg)
 
 
-Do printer.cfg si přidáme canbus mcu:
+Add canbus mcu to printer.cfg:
 ```
 [mcu sb2040]
-canbus_uuid: vase-id-napisete-sem     # vase uu id
+canbus_uuid: write-your-id-here # your uu id
 
 ## SB2040 RPI sensor
 [temperature_sensor FLY-SB2040]
@@ -226,11 +226,11 @@ sensor_pin = sb2040:gpio26
 
 
 [controller_fan sb2040-fan]
-##  SB2040 5V fan
+## SB2040 5V fan
 pin: sb2040:gpio15
-kick_start_time: 0.5  # full speed to spinn of fan
+kick_start_time: 0.5 # full speed to spin of fan
 fan_speed: 0.9 #reduce speed to 90%
-heater: heater_bed  # enabled when heater bed heating
+heater: heater_bed # enabled when heater bed heating
 idle_timeout:30
 
 [adxl345]
@@ -244,11 +244,11 @@ spi_software_miso_pin: sb2040:gpio2
 step_pin: sb2040:gpio9
 dir_pin: sb2040:gpio10
 enable_pin: !sb2040:gpio7
-rotation_distance: 22.6789511   #Bondtech 5mm Drive Gears
+rotation_distance: 22.6789511 #Bondtech 5mm Drive Gears
 
-gear_ratio: 50:10               #Gear Ratio Stealthburner
+gear_ratio: 50:10 #Gear Ratio Stealthburner
 microsteps: 32
-full_steps_per_rotation: 200    #200 for 1.8 degree, 400 for 0.9 degree
+full_steps_per_rotation: 200 #200 for 1.8 degree, 400 for 0.9 degree
 nozzle_diameter: 0.400
 filament_diameter: 1.75
 heater_pin: sb2040:gpio6
@@ -270,18 +270,18 @@ run_current: 0.6
 sense_resistor: 0.110
 stealthchop_threshold: 0
 
-########################################
+#########################################
 # Filament runout switch sensor
-########################################
+#########################################
 
 [filament_switch_sensor runout_sensor]
 pause_on_runout: True
 runout_gcode:
-#SET_LED LED=toolhead RED=1 GREEN=0 BLUE=0 INDEX=1  TRANSMIT=1
-G91 ; relative positioning
+#SET_LED LED=toolhead RED=1 GREEN=0 BLUE=0 INDEX=1 TRANSMIT=1
+G91; relative positioning
 G1 E-2 F2700
 G1 Z10
-G90 ; absolute positioning
+G90; absolute positioning
 G1 X250 Y50 F10000
 G91
 G1 E-100 F1000
@@ -289,7 +289,7 @@ insert_gcode:
 #SET_LED LED=toolhead RED=0.5 GREEN=0.5 BLUE=0.0 WHITE=0.1 INDEX=1 TRANSMIT=1
 G92 E0 ; Reset Extruder
 G1 E50 F600 ; move filament down 50mm quickly
-G1 E60 F300 ; extrude 60mm of filament slowly to get it through nozzle
+G1 E60 F300 ; extrude 60mm of filament slowly to get it through the nozzle
 event_delay: 3.0
 pause_delay: 0.5
 switch_pin: !sb2040:gpio29
@@ -307,87 +307,87 @@ sample_retract_dist: 2.0
 samples_tolerance: 0.006
 samples_tolerance_retries: 3
 activate_gcode:
-{% set PROBE_TEMP = 150 %}
-{% set MAX_TEMP = PROBE_TEMP + 5 %}
+{% set PROBE_TEMP = 150%}
+{% set MAX_TEMP = PROBE_TEMP + 5%}
 {% set ACTUAL_TEMP = printer.extruder.temperature %}
 {% set TARGET_TEMP = printer.extruder.target %}
 
 {% if TARGET_TEMP > PROBE_TEMP %}
-    { action_respond_info('Extruder temperature target of %.1fC is too high, lowering to %.1fC' % (TARGET_TEMP, PROBE_TEMP)) }
-    M109 S{ PROBE_TEMP }
+     { action_respond_info('Extruder temperature target of %.1fC is too high, lowering to %.1fC' % (TARGET_TEMP, PROBE_TEMP)) }
+     M109 S{ PROBE_TEMP }
 {% else %}
-    # Temperature target is already low enough, but nozzle may still be too hot.
-    {% if ACTUAL_TEMP > MAX_TEMP %}
-        { action_respond_info('Extruder temperature %.1fC is still too high, waiting until below %.1fC' % (ACTUAL_TEMP, MAX_TEMP)) }
-        TEMPERATURE_WAIT SENSOR=extruder MAXIMUM={ MAX_TEMP }
-    {% endif %}
+     # Temperature target is already low enough, but the nozzle may still be too hot.
+     {% if ACTUAL_TEMP > MAX_TEMP %}
+         { action_respond_info('Extruder temperature %.1fC is still too high, waiting until below %.1fC' % (ACTUAL_TEMP, MAX_TEMP)) }
+         TEMPERATURE_WAIT SENSOR=extruder MAXIMUM={ MAX_TEMP }
+     {% endif %}
 {% endif %}
 ```
 
-## 5. Aktualizace SB2040 firmware skrz CanBus interface:
+## 5. Update SB2040 firmware via CanBus interface:
 
-Postup je stejný jako v bodě 2:
+The procedure is the same as in point 2:
 
-### Zkompilujeme firmware
+### We will compile the firmware
 
-Vlezeme do klipper složky a stáhneme poslední aktualizaci z gitu:
+We go into the klipper folder and download the latest update from git:
 ```
-cd ~/klipper && git pull
+cd ~/clipper && git pull
 ```
 
-Odstraníme předešlé kompilace:
+We will remove the previous compilations:
 ```
 make clean
 ```
 
-Provedeme nastavení HW pro který to kompilujeme:
+We will set up the HW for which we compile it:
 ```
 make menuconfig
 ```
 
-Nastavíme takto:
+We set it as follows:
 
-![canboot-flash](img/canboot-flash.png) 
+![canboot-flash](img/canboot-flash.png)
 
-Nezapomeňte dopsat: rychlost **500000, nebo až 1000000 a gpio24**
+Don't forget to add: speed **500000, or up to 1000000 and gpio24**
 
-Zmáčkneme `q` pro uložení a `y` pro potvrzení
+We press `q` to save and `y` to confirm
 
-Zkompilujeme:
+We compile:
 ```
 make -j4
 ```
 
-Stopneme klipper
+Let's stop the clipper
 ```
-sudo service klipper stop
+sudo service clipper stop
 ```
 
-Teď nahrajeme námi zkompilovaný firmware do SB2040 desky:
+Now upload the firmware we compiled to the SB2040 board:
 ```
 python3 ~/klipper/lib/canboot/flash_can.py -i can0 -f ~/klipper/out/klipper.bin -u <VASE-CANBUS-ID>
 ```
 
-Mělo by to vypadat takto:
+It should look like this:
 ![flash-done](img/canboot-flash-done.png)
 
-Opět spustíme klipper:
+Let's start klipper again:
 ```
-sudo service klipper start 
+sudo service clipper start
 ```
 
 ## 6. Sensorless homing
 
-Když jsme se zbavili hromady kabeláže tak je zbytečné používat i endstopy na XY. Tady si ukážeme jak jednoduše upravit na Octopus desce.
+When we got rid of a bunch of cabling, it is unnecessary to use endstops on XY. Here we will show you how to easily edit on the Octopus board.
 
-### Zapojení
-Odpojíme stávající endstopy, na octopus desce zapojíme jumpery DIAG piny pro AB motory:
+### Connection
+We disconnect the existing endstops, on the octopus board we connect jumpers DIAG pins for AB motors:
 
 ![octopus-sensorless](img/octopus-sensorless.png)
 
-### Konfigurace endstopů:
+### Configuration of endstops:
 
-Původní stav:
+Original state:
 ```
 [stepper_x]
 # …
@@ -408,82 +408,82 @@ homing_retract_dist: 5
 # …
 ```
 
-Po úpravě:
+After adjustment:
 ```
 [stepper_x]
-endstop_pin: tmc2209_stepper_x:virtual_endstop
+endstop_pin: tmc2209_stepper_x: virtual_endstop
 # …
 homing_retract_dist: 0
 
 [tmc2209 stepper_x]
 # …
-diag_pin: ^PG6  # použijete stejný pin co jste měli nastavený jako endstop_pin!
-driver_SGTHRS: 255 # 255 je nejvetší citlivost pro detekci, 0 je nejmenší citlivost
+diag_pin: ^PG6 # you will use the same pin you had set as endstop_pin!
+driver_SGTHRS: 255 # 255 is the highest sensitivity for detection, 0 is the lowest sensitivity
 
 [stepper_y]
 # …
-endstop_pin: tmc2209_stepper_y:virtual_endstop
+endstop_pin: tmc2209_stepper_y: virtual_endstop
 # …
 homing_retract_dist: 0
 
 [tmc2209 stepper_y]
 # …
-diag_pin: ^PG9     # použijete stejný pin co jste měli nastavený jako endstop_pin!
-driver_SGTHRS: 255 # 255 je nejvetší citlivost pro detekci, 0 je nejmenší citlivost
+diag_pin: ^PG9 # you will use the same pin you had set as endstop_pin!
+driver_SGTHRS: 255 # 255 is the highest sensitivity for detection, 0 is the lowest sensitivity
 ```
 
-Uložíme config - save & restart
+We save the config - save & restart
 
-### Ladění cistlivosti nárazu
+### Tuning impact sensitivity
 
-Změnu citlivosti, kde hodnota 255 je největší a 0 je nejmenší, provedeme tak že si nastavíme z počátku 255 a postupně ubíráme tak, aby náraz se nám extruden nezastavoval někde uprostřed, ale až po nárazu do gantry a ten nebyl příliš silný.
+We change the sensitivity, where the value 255 is the largest and 0 is the smallest, by setting 255 from the beginning and gradually reducing it so that the impact does not stop somewhere in the middle, but only after it hits the gantry and it is not too strong.
 
-Nastavíme citlivost:
+We set the sensitivity:
 ```
 SET_TMC_FIELD FIELD=SGTHRS STEPPER=stepper_x VALUE=255
 ```
 
-Provedeme home
+We will make a home
 ```
 G28 X0
 ```
 
-Případně se pohneme zpět v GUI X -10 pro další test:
+Alternatively, we move back in the X -10 GUI for another test:
 ```
 G91
 G1 X-10 F6000
 G90
 ```
 
-Opět změníme cilivost a místo 255 nastavíme o něco méně do té doby, než jste spokojeni.
+We'll change the aim again, and instead of 255, we'll set it a little lower until you're happy.
 
-**Stejný postup opakujeme pro osu Y**
+**We repeat the same procedure for the Y axis**
 
-Nastavíme citlivost:
+We set the sensitivity:
 ```
 SET_TMC_FIELD FIELD=SGTHRS STEPPER=stepper_y VALUE=255
 ```
 
-Provedeme home na ose Y:
+Let's do a home on the Y axis:
 ```
 G28 Y0
 ```
 
-Případně se pohneme zpět v GUI YX -10 pro další test:
+Alternatively, we move back in the YX -10 GUI for another test:
 
 G91
 G1 Y-10 F6000
 G90
 
-V mém případě s Moons motory mám obě hodnoty citlivostni nastaveny na 70:
+In my case with Moons motors, I have both sensitivity values set to 70:
 ```
 driver_SGTHRS: 70
 ```
 
-### Makra
-Kdokonalosti jen chybí sensorless makra a to homming override které používám s TAP.
+### Macros
+Perfection only lacks sensorless macros and the homing override that I use with TAP.
 
-#### Homing_override makro
+#### Homing_override macro
 
 ```
 [homing_override]
@@ -495,113 +495,113 @@ G0 Z5 F600
 _HOME_X
 _HOME_Y
 G90
-G0 X175 Y175 F6600 ## toto je pro 350 verzi, přepište si zde vaši velikost, jinak to nebude dělat home uprostřed
+G0 X175 Y175 F6600 ## this is for 350 version, overwrite your size here, otherwise it won't do home center
 G28 Z
 G0 Z10 F3600
 ```
 
 
-#### Sensorless makro
+#### Sensorless macro
 
-To upravuje proud do motorů při home a pohne se to o kousek od konce ať místo pro pohyb a případný další home.
+This adjusts the current to the motors at home and moves it a little bit from the end, leaving room for movement and a possible next home.
 
-Přidejte si makra tam, kde jste zvyklí je používat.
+Add macros where you are used to using them.
 ```
 [gcode_macro _HOME_X]
 gcode:
-    # Always use consistent run_current on A/B steppers during sensorless homing
-    {% set RUN_CURRENT_X = printer.configfile.settings['tmc2209 stepper_x'].run_current|float %}
-    {% set RUN_CURRENT_Y = printer.configfile.settings['tmc2209 stepper_y'].run_current|float %}
-    {% set HOME_CURRENT = 0.7 %}
-    SET_TMC_CURRENT STEPPER=stepper_x CURRENT={HOME_CURRENT}
-    SET_TMC_CURRENT STEPPER=stepper_y CURRENT={HOME_CURRENT}
+     # Always use consistent run_current on A/B steppers during sensorless homing
+     {% set RUN_CURRENT_X = printer.configfile.settings['tmc2209 stepper_x'].run_current|float %}
+     {% set RUN_CURRENT_Y = printer.configfile.settings['tmc2209 stepper_y'].run_current|float %}
+     {% set HOME_CURRENT = 0.7%}
+     SET_TMC_CURRENT STEPPER=stepper_x CURRENT={HOME_CURRENT}
+     SET_TMC_CURRENT STEPPER=stepper_y CURRENT={HOME_CURRENT}
 
-    # Home
-    G28 X
-    # Move away
-    G91
-    G1 X-10 F1200
+     # Home
+     G28 X
+     # Move away
+     G91
+     G1 X-10 F1200
     
-    # Wait just a second… (give StallGuard registers time to clear)
-    G4 P1000
-    # Set current during print
-    SET_TMC_CURRENT STEPPER=stepper_x CURRENT={RUN_CURRENT_X}
-    SET_TMC_CURRENT STEPPER=stepper_y CURRENT={RUN_CURRENT_Y}
+     # Wait just a second… (give StallGuard registers time to clear)
+     G4 P1000
+     # Set current during print
+     SET_TMC_CURRENT STEPPER=stepper_x CURRENT={RUN_CURRENT_X}
+     SET_TMC_CURRENT STEPPER=stepper_y CURRENT={RUN_CURRENT_Y}
 
 [gcode_macro _HOME_Y]
 gcode:
-    # Set current for sensorless homing
-    {% set RUN_CURRENT_X = printer.configfile.settings['tmc2209 stepper_x'].run_current|float %}
-    {% set RUN_CURRENT_Y = printer.configfile.settings['tmc2209 stepper_y'].run_current|float %}
-    {% set HOME_CURRENT = 0.7 %}
-    SET_TMC_CURRENT STEPPER=stepper_x CURRENT={HOME_CURRENT}
-    SET_TMC_CURRENT STEPPER=stepper_y CURRENT={HOME_CURRENT}
+     # Set current for sensorless homing
+     {% set RUN_CURRENT_X = printer.configfile.settings['tmc2209 stepper_x'].run_current|float %}
+     {% set RUN_CURRENT_Y = printer.configfile.settings['tmc2209 stepper_y'].run_current|float %}
+     {% set HOME_CURRENT = 0.7%}
+     SET_TMC_CURRENT STEPPER=stepper_x CURRENT={HOME_CURRENT}
+     SET_TMC_CURRENT STEPPER=stepper_y CURRENT={HOME_CURRENT}
 
-    # Home
-    G28 Y
-    # Move away
-    G91
-    G1 Y-10 F1200
+     # Home
+     G28 Y
+     # Move away
+     G91
+     G1 Y-10 F1200
 
-    # Wait just a second… (give StallGuard registers time to clear)
-    G4 P1000
-    # Set current during print
-    SET_TMC_CURRENT STEPPER=stepper_x CURRENT={RUN_CURRENT_X}
-    SET_TMC_CURRENT STEPPER=stepper_y CURRENT={RUN_CURRENT_Y}
+     # Wait just a second… (give StallGuard registers time to clear)
+     G4 P1000
+     # Set current during print
+     SET_TMC_CURRENT STEPPER=stepper_x CURRENT={RUN_CURRENT_X}
+     SET_TMC_CURRENT STEPPER=stepper_y CURRENT={RUN_CURRENT_Y}
 ```
 
-## 7. Něco navíc ... jak nahrát nový firmware do Octopuse bez otáčení tiskárny, strkání SD karty nebo propojky
+## 7. Something extra ... how to upload new firmware to Octopus without turning the printer, inserting the SD card or the jumper
 
-Naformátujte nějakou malou microSD na FAT32 a strčtezasuňte ji do Octopus desky
+Format some small microSD to FAT32 and stick it into the Octopus board
 
-Zkompilujte firmware pro svou desku jak jste zvykli.
+Compile the firmware for your board as usual.
 
-Stopneme klipper:
+Let's stop the clipper:
 ```
-sudo service klipper stop
-```
-
-Přesuneme se do složky kde máte klipper:
-```
-cd ~/klipper
+sudo service clipper stop
 ```
 
-Odstraníme případné předešlé kompilace:
-```  
+Let's move to the folder where you have klipper:
+```
+cd ~/clipper
+```
+
+We will remove any previous compilations:
+```
 make clean
 ```
 
-Provedeme nastavení HW pro který to kompilujeme:
+We will set up the HW for which we compile it:
 ```
 make menuconfig
 ```
     
-Nastavíme - toto je pro verzi F446 v1.1:
+Let's set up - this is for the F446 v1.1 version:
 
 ![octopus-F446v1.1](img/octopus-F446v1.1.png)
 
-Zmáčkneme `q` pro uložení a `y` pro potvrzení:
+We press `q` to save and `y` to confirm:
 ```
 make -j4
 ```
 
-Spustíme skript, v mém případě Octopus verzi F446 v1.1:
+Let's run the script, in my case Octopus version F446 v1.1:
 ```
 ./scripts/flash-sdcard.sh /dev/ttyACM0 btt-octopus-f446-v1.1
 ```
 
-Úspěšné nahrání pak vypadá takto:
+A successful upload then looks like this:
 
 ![octopus-flash](img/octopus-flash.png)
 
-Opět spustíme klipper:
+Let's start klipper again:
 ```
-sudo service klipper start
+sudo service clipper start
 ```
 
-**Teď jen vypněte celou tiskárnu skrz Mainsail, nebo Fluid, po nějaké chvilce vypnětěte tiskárnu úplně vypínačem, chvíli počkejte a opět zapněte, Octopus si automaticky nahraje nový klipper firmware z sd karty.**
+**Now just turn off the entire printer via Mainsail or Fluid, after a while turn off the printer completely with the power switch, wait a while and turn it on again, Octopus will automatically download the new klipper firmware from the sd card.**
 
-Pokud máte jiný typ desky tak tímto příkazem vylistujeme a zjistíme zda to lze použít i s vaší deskou:
+If you have a different type of board, we will list it with this command and find out if it can also be used with your board:
 ```
 ./scripts/flash-sdcard.sh -l
 ```
@@ -663,15 +663,14 @@ Pro tyto desky je zde podpora:
 - robin_v3
 - smoothieboard-v1
 
-
 ## 8. One more thing :)
 
-CanBus s Rpi SB2040 a driverem motoru potřebuje chladit, hlavně pokud tisknete v uzavřeném boxu. Pro Stealthburner jsem upravil dvířka pro umístění ventilátoru 25x25x7 mm a 30x30x7 mm. Chladič driveru motoru je třeba upilovat zhruba na polovinu, pro jistotu přilepte i nějaký chladič na RP2040.
+CanBus with Rpi SB2040 and motor driver needs cooling, especially if you print in a closed box. For the Stealthburner, I modified the door to accommodate a 25x25x7mm and 30x30x7mm fan. The cooler of the motor driver needs to be sawn roughly in half, to be sure, also glue some cooler to the RP2040.
 
-Na konec jsem navrhnul i umbilical mod. Tak nejsou třeba řetězy.
+At the end, I also designed an umbilical mod. So there is no need for chains.
 
-Modely naleznete zde: https://www.printables.com/cs/social/122655-locki/models
+You can find the models here: https://www.printables.com/cs/social/122655-locki/models
 
 ![mods](img/mods.png)
 
-Pokud zde najdete nějakou blbost, nepřesnost, typo atď. tak napište na discordu, opravím.
+If you find any nonsense, inaccuracy, typo, etc., write to discord, I will correct it.
